@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'debug_toolbar',
+    'store',
+    'customers',
+    'reviews',
 ]
 
 MIDDLEWARE = [
