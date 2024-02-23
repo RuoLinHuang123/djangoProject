@@ -4,14 +4,14 @@ from .models import Category, Author, Book
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ['name']
+        fields = ['id','name']
 
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
-        fields = ['name']
+        fields = ['id','name']
 
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
-        fields = ['title','author','categories','published_date']
+        fields = ['id','title','author','categories','published_date']
