@@ -5,7 +5,6 @@ from .serializer import ReviewSerializer
 
 
 class ReviewViewSet(ModelViewSet):
-    serializer_class = ReviewSerializer
     queryset = Review.objects.all().select_related('content_type', 'user')
     serializer_class = ReviewSerializer
 

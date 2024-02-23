@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('__debug__/',include(debug_toolbar.urls)),
     path('store/',include('store.urls')),
-    path('reviews/',include('reviews.urls'))
+    path('reviews/',include('reviews.urls')),
+    path('customers/',include('customers.urls'))
 ]
