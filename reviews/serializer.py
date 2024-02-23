@@ -19,12 +19,24 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['id', 'content_type', 'object_id', 'user', 'text']
 
-    def validate_content_type_id(self, value):
+    def validate(self, data):
+        # Extract content_type and object_id from the input data
+        content_type = data.get('content_type')
+        object_id = data.get('object_id')
+
+        # Validate content_type as before
         allowed_models = ['book']
         try:
-            content_type = ContentType.objects.get_for_id(value)
-            if content_type.model not in allowed_models:
-                raise serializers.ValidationError("Content type is not allowed.")
+            ct = ContentType.objects.get_for_id(content_type.id)
+            if ct.model not in allowed_models:
+                raise serializers.ValidationError({"content_type": "Content type is not allowed."})
         except ContentType.DoesNotExist:
-            raise serializers.ValidationError("Invalid content type.")
-        return value
+            raise serializers.ValidationError({"content_type": "Invalid content type."})
+
+        # Validate that the specified object_id exists for the given content_type
+        model_class = ct.model_class()  # Get the model class for the content type
+        if not model_class.objects.filter(id=object_id).exists():
+            raise serializers.ValidationError({"object_id": "No object found for the given id and content type."})
+
+        # Return the validated data if all checks pass
+        return data
