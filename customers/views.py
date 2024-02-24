@@ -5,10 +5,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from .models import Customer
 from .serializer import CustomerSerializer
+from .permission import IsOwnerOrAdmin
 
 class CustomerViewSet(ModelViewSet):
     serializer_class = CustomerSerializer
     queryset = Customer.objects.select_related('user').all()
+    permission_classes = [IsOwnerOrAdmin]
 
     @action(detail=False, methods=['get', 'put'])
     def me(self, request):
