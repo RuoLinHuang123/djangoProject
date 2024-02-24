@@ -14,17 +14,14 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username']
 
 class ReviewSerializer(serializers.ModelSerializer):
-
+    # Remove 'user' from fields to prevent it from being input directly
     class Meta:
         model = Review
-        fields = ['id', 'content_type', 'object_id', 'user', 'text']
+        fields = ['id', 'content_type', 'object_id', 'text']  # 'user' field is removed
 
     def validate(self, data):
-        # Extract content_type and object_id from the input data
         content_type = data.get('content_type')
         object_id = data.get('object_id')
-
-        # Validate content_type as before
         allowed_models = ['book']
         try:
             ct = ContentType.objects.get_for_id(content_type.id)
@@ -33,10 +30,17 @@ class ReviewSerializer(serializers.ModelSerializer):
         except ContentType.DoesNotExist:
             raise serializers.ValidationError({"content_type": "Invalid content type."})
 
-        # Validate that the specified object_id exists for the given content_type
-        model_class = ct.model_class()  # Get the model class for the content type
+        model_class = ct.model_class()
         if not model_class.objects.filter(id=object_id).exists():
             raise serializers.ValidationError({"object_id": "No object found for the given id and content type."})
 
-        # Return the validated data if all checks pass
         return data
+
+    def save(self, **kwargs):
+        user = self.context.get('request').user if 'request' in self.context else None
+        
+        if user and user.is_authenticated:
+            self.validated_data['user'] = user
+            return super().save(**kwargs)
+        else:
+            raise serializers.ValidationError({"user": "No authenticated user found. Cannot proceed with saving the review."})
