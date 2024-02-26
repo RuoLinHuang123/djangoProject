@@ -3,30 +3,22 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 from .models import Review
 
-class ContentTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ContentType
-        fields = ['id', 'model']
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'username']
-
 class ReviewSerializer(serializers.ModelSerializer):
-    # Remove 'user' from fields to prevent it from being input directly
+    user_id = serializers.SerializerMethodField(read_only=True)  # Add this line
+
     class Meta:
         model = Review
-        fields = ['id', 'content_type', 'object_id', 'text']  # 'user' field is removed
+        fields = ['id', 'content_type', 'object_id', 'text', 'user_id']  # Include 'user_id'
+    
+    def get_user_id(self, obj):
+        # This method returns the ID of the user who created the review
+        return obj.user.id if obj.user else None
 
     def validate(self, data):
         content_type = data.get('content_type')
         object_id = data.get('object_id')
-        allowed_models = ['book']
         try:
             ct = ContentType.objects.get_for_id(content_type.id)
-            if ct.model not in allowed_models:
-                raise serializers.ValidationError({"content_type": "Content type is not allowed."})
         except ContentType.DoesNotExist:
             raise serializers.ValidationError({"content_type": "Invalid content type."})
 

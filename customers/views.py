@@ -23,8 +23,9 @@ class CustomerViewSet(ModelViewSet):
             serialized_customer = CustomerSerializer(customer)
             return Response(serialized_customer.data)
         elif request.method == 'PUT':
-            serialized_customer = CustomerSerializer(customer, data=request.data, partial=True)
+            serialized_customer = CustomerSerializer(customer, data=request.data,partial=True)
             if serialized_customer.is_valid():
                 serialized_customer.save()
                 return Response(serialized_customer.data)
             return Response(serialized_customer.errors, status=status.HTTP_400_BAD_REQUEST)
+

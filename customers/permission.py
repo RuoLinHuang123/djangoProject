@@ -2,13 +2,16 @@ from rest_framework import permissions
 
 class IsOwnerOrAdmin(permissions.BasePermission):
     """
-    Custom permission to only allow owners of an object to edit it and
-    admins full access.
+    Custom permission to only allow owners of an object to edit it, 
+    admins full access, and create operations to be public.
     """
 
     def has_permission(self, request, view):
         # Allow all read-only requests
         if request.method in permissions.SAFE_METHODS:
+            return True
+        # Allow create operations to be public
+        if request.method == 'POST':
             return True
         # Allow full access to admin users
         if request.user and request.user.is_staff:

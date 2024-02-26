@@ -13,19 +13,18 @@ class AuthorSerializer(serializers.ModelSerializer):
 
 class BookSerializer(serializers.ModelSerializer):
     author = serializers.CharField()
-    categoriesSubmit = serializers.ListField(child=serializers.CharField(),write_only=True)
+    categoriesSubmit = serializers.ListField(child=serializers.CharField(), write_only=True)
     categories = CategorySerializer(many=True, read_only=True)
 
     class Meta:
         model = Book
-        fields = ['id', 'title', 'author', 'categoriesSubmit','categories', 'published_date']
+        fields = ['id', 'title', 'author', 'categoriesSubmit', 'categories', 'published_date']
 
     def create(self, validated_data):
         author_name = validated_data.pop('author')
         categories_names = validated_data.pop('categoriesSubmit')
 
         author, _ = Author.objects.get_or_create(name=author_name)
-
         book = Book.objects.create(author=author, **validated_data)
 
         for category_name in categories_names:
@@ -35,19 +34,22 @@ class BookSerializer(serializers.ModelSerializer):
         return book
 
     def update(self, instance, validated_data):
-        author_name = validated_data.pop('author')
-        categories_names = validated_data.pop('categoriesSubmit')
+        if 'author' in validated_data:
+            author_name = validated_data.pop('author')
+            author, _ = Author.objects.get_or_create(name=author_name)
+            instance.author = author
 
-        author, _ = Author.objects.get_or_create(name=author_name)
-        instance.author = author
+        if 'categoriesSubmit' in validated_data:
+            categories_names = validated_data.pop('categoriesSubmit')
+            # Clear existing categories and add the new ones
+            instance.categories.clear()
+            for category_name in categories_names:
+                category, _ = Category.objects.get_or_create(name=category_name)
+                instance.categories.add(category)
 
-        instance.title = validated_data.get('title', instance.title)
-        instance.published_date = validated_data.get('published_date', instance.published_date)
+        # Update any other fields if necessary
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
         instance.save()
-
-        instance.categories.clear()
-        for category_name in categories_names:
-            category, _ = Category.objects.get_or_create(name=category_name)
-            instance.categories.add(category)
-
         return instance
